@@ -15,30 +15,35 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      # 1. 下载项目源码
       - name: Checkout
         uses: actions/checkout@v5
 
-      # 2. 配置 Java 25
       - name: Setup JDK
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '25'
 
-      # 3. 配置 Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
-      # 4. 安装 NDK 和 CMake
       - name: Install NDK and CMake
         run: |
-          sdkmanager --install \
-            "ndk;30.0.16138531" \
-            "cmake;3.22.1"
+          sdkmanager --install "ndk;30.0.16138531" "cmake;3.22.1"
 
-      # 5. 接受 Android SDK 许可
-      - name: Accept Android Licenses
-        run: yes |
+      - name: Grant Gradle Permission
+        run: chmod +x gradlew
+
+      - name: Build APK
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JoynCon-APK
+          path: |
+            **/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
